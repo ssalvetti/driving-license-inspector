@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"fmt"
 	"log"
 
 	_ "github.com/lib/pq"
@@ -13,8 +14,25 @@ func main() {
 	if err != nil {
 		log.Fatalf("connection failed: %v", err)
 	}
-	_, err = db.Query("INSERT INTO patenti VALUES (6133016, 1960, 'LOMBARDIA', 'LODI', 'LODI', 'F', 'B', '1979-08-22 00:00:00', 'S', '1979-08-22 00:00:00', '2019-07-21 00:00:00', 30);")
+	_, err = db.Query("TRUNCATE TABLE patenti")
 	if err != nil {
-		log.Fatalf("query failed: %v", err)
+		log.Printf("failed to run TRUNCATE because %v", err)
 	}
+	firstID := 6133016
+	insertQuery := fmt.Sprintf("INSERT INTO patenti VALUES (%d, 1960, 'LOMBARDIA', 'LODI', 'LODI', 'F', 'B', '1979-08-22 00:00:00', 'S', '1979-08-22 00:00:00', '2019-07-21 00:00:00', 30);", firstID)
+	err = insertToDB(db, insertQuery)
+	if err != nil {
+		log.Fatalf("insert query failed: %v", err)
+	}
+	_, err = db.Query(fmt.Sprintf("SELECT * FROM patenti WHERE id=%d;", firstID))
+	if err != nil {
+		log.Fatalf("select query failed: %v", err)
+	}
+}
+
+func insertToDB(db *sql.DB, query string) error {
+	if _, err := db.Exec(query); err != nil {
+		return err
+	}
+	return nil
 }
