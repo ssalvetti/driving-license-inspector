@@ -3,6 +3,8 @@ package patenti
 import (
 	"database/sql"
 	"fmt"
+	"log"
+	"path/filepath"
 	"testing"
 
 	_ "github.com/lib/pq"
@@ -31,4 +33,16 @@ func Test_insertWithPlaceholder(t *testing.T) {
 	if id != idToInsert {
 		t.Errorf("id mismatched %d", id)
 	}
+}
+
+func Test_ReadCsvFile(t *testing.T) {
+	testFilePath := filepath.Join("..", "..", "test", "fixtures", "lombardia-subset.csv")
+	linesRead, err := readFromCsv(testFilePath)
+	if err != nil {
+		t.Errorf("reading from csv failed: %v", err)
+	}
+	if linesRead <= 0 {
+		t.Error("no lines read")
+	}
+	log.Println("read lines # ", linesRead)
 }
