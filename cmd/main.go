@@ -6,6 +6,8 @@ import (
 	"log"
 
 	_ "github.com/lib/pq"
+
+	"github.com/ssalvetti/driving-license-inspector/pkg/patenti"
 )
 
 func main() {
@@ -20,7 +22,7 @@ func main() {
 	}
 	firstID := 6133016
 	insertQuery := fmt.Sprintf("INSERT INTO patenti VALUES (%d, 1960, 'LOMBARDIA', 'LODI', 'LODI', 'F', 'B', '1979-08-22 00:00:00', 'S', '1979-08-22 00:00:00', '2019-07-21 00:00:00', 30);", firstID)
-	err = insertToDB(db, insertQuery)
+	err = patenti.InsertToDB(db, insertQuery)
 	if err != nil {
 		log.Fatalf("insert query failed: %v", err)
 	}
@@ -28,11 +30,4 @@ func main() {
 	if err != nil {
 		log.Fatalf("select query failed: %v", err)
 	}
-}
-
-func insertToDB(db *sql.DB, query string) error {
-	if _, err := db.Exec(query); err != nil {
-		return err
-	}
-	return nil
 }
