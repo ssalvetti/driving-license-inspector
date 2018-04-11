@@ -2,25 +2,27 @@ package main
 
 import (
 	"database/sql"
-	"fmt"
+	"flag"
 	"log"
 
-	_ "github.com/lib/pq"
-
 	"github.com/ssalvetti/driving-license-inspector/pkg/patenti"
+
+	_ "github.com/lib/pq"
 )
 
 func main() {
 	connectionString := "postgres://postgres:postgres@localhost/driving_licenses?sslmode=disable"
-	db, err := sql.Open("postgres", connectionString)
+	_, err := sql.Open("postgres", connectionString)
 	if err != nil {
 		log.Fatalf("connection failed: %v", err)
 	}
-	firstID := 6133016
-	insertQuery := fmt.Sprintf("INSERT INTO patenti VALUES (%d, 1960, 'LOMBARDIA', 'LODI', 'LODI', 'F', 'B', '1979-08-22 00:00:00', 'S', '1979-08-22 00:00:00', '2019-07-21 00:00:00', 30);", firstID)
-	err = patenti.InsertToDB(db, insertQuery)
-	if err != nil {
-		log.Fatalf("insert query failed: %v", err)
-	}
 
+	csvFile := flag.String("csv", "", "path to csv file downloaded from gov website")
+	flag.Parse()
+
+	recordPatenti, err := patenti.ReadFromCsv(*csvFile)
+	if err != nil {
+		log.Fatalf("could not read csv file: %v", err)
+	}
+	log.Printf("records read: %d", len(recordPatenti))
 }

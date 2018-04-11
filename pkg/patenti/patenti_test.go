@@ -3,7 +3,6 @@ package patenti
 import (
 	"database/sql"
 	"fmt"
-	"log"
 	"path/filepath"
 	"testing"
 
@@ -37,12 +36,25 @@ func Test_insertWithPlaceholder(t *testing.T) {
 
 func Test_ReadCsvFile(t *testing.T) {
 	testFilePath := filepath.Join("..", "..", "test", "fixtures", "lombardia-subset.csv")
-	linesRead, err := readFromCsv(testFilePath)
+	records, err := ReadFromCsv(testFilePath)
 	if err != nil {
 		t.Errorf("reading from csv failed: %v", err)
 	}
-	if linesRead <= 0 {
+	if len(records) <= 0 {
 		t.Error("no lines read")
 	}
-	log.Println("read lines # ", linesRead)
+}
+
+func TestReadCsvIntoCustomStructure(t *testing.T) {
+	testFilePath := filepath.Join("..", "..", "test", "fixtures", "lombardia-subset.csv")
+	records, err := ReadFromCsv(testFilePath)
+	if err != nil {
+		t.Errorf("reading from csv failed: %v", err)
+	}
+	if records[0].id != "6133015" {
+		t.Error("unexpected value")
+	}
+	if records[1].categoria_patente != "B" {
+		t.Error("wrong category")
+	}
 }
