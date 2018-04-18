@@ -12,7 +12,7 @@ import (
 
 func main() {
 	connectionString := "postgres://postgres:postgres@localhost/driving_licenses?sslmode=disable"
-	_, err := sql.Open("postgres", connectionString)
+	db, err := sql.Open("postgres", connectionString)
 	if err != nil {
 		log.Fatalf("connection failed: %v", err)
 	}
@@ -24,5 +24,16 @@ func main() {
 	if err != nil {
 		log.Fatalf("could not read csv file: %v", err)
 	}
+	var inserted int
+	for _, record := range recordPatenti {
+		err := patenti.InsertRecordPatenteToDB(db, record)
+		if err != nil {
+			log.Printf("insert failed for record patente for record %v\nerror: %v", record, err)
+			continue
+		}
+		inserted++
+	}
+
 	log.Printf("records read: %d", len(recordPatenti))
+	log.Printf("records inserted: %d", inserted)
 }

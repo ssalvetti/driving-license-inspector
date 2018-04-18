@@ -3,6 +3,7 @@ package patenti
 import (
 	"database/sql"
 	"encoding/csv"
+	"fmt"
 	"os"
 )
 
@@ -21,7 +22,17 @@ type RecordPatente struct {
 	punti_patente       string
 }
 
-func InsertToDB(db *sql.DB, query string) error {
+func InsertRecordPatenteToDB(db *sql.DB, rec RecordPatente) error {
+	//TODO() need input sanitization for comune residenza as it contains single quote 
+	query := fmt.Sprintf("INSERT INTO patenti VALUES(%s, %s, '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', %s)",
+		rec.id, rec.anno_nascita, rec.regione_residenza, rec.provincia_residenza, rec.comune_residenza, rec.sesso, rec.categoria_patente,
+		rec.data_rilascio, rec.abilitato_a, rec.data_abilitazione_a, rec.data_scadenza, rec.punti_patente)
+
+	return insertToDB(db, query)
+
+}
+
+func insertToDB(db *sql.DB, query string) error {
 	if _, err := db.Exec(query); err != nil {
 		return err
 	}
