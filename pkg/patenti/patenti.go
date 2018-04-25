@@ -3,7 +3,6 @@ package patenti
 import (
 	"database/sql"
 	"encoding/csv"
-	"fmt"
 	"os"
 )
 
@@ -23,17 +22,18 @@ type RecordPatente struct {
 }
 
 func InsertRecordPatenteToDB(db *sql.DB, rec RecordPatente) error {
-	//TODO() need input sanitization for comune residenza as it contains single quote 
-	query := fmt.Sprintf("INSERT INTO patenti VALUES(%s, %s, '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', %s)",
-		rec.id, rec.anno_nascita, rec.regione_residenza, rec.provincia_residenza, rec.comune_residenza, rec.sesso, rec.categoria_patente,
-		rec.data_rilascio, rec.abilitato_a, rec.data_abilitazione_a, rec.data_scadenza, rec.punti_patente)
+	query := "INSERT INTO patenti VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)"
 
-	return insertToDB(db, query)
+	return insertToDB(db, query, rec.id,
+		rec.anno_nascita, rec.regione_residenza, rec.provincia_residenza,
+		rec.comune_residenza, rec.sesso, rec.categoria_patente,
+		rec.data_rilascio, rec.abilitato_a, rec.data_abilitazione_a,
+		rec.data_scadenza, rec.punti_patente)
 
 }
 
-func insertToDB(db *sql.DB, query string) error {
-	if _, err := db.Exec(query); err != nil {
+func insertToDB(db *sql.DB, query string, args ...interface{}) error {
+	if _, err := db.Exec(query, args...); err != nil {
 		return err
 	}
 	return nil

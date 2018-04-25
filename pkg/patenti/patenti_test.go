@@ -2,7 +2,6 @@ package patenti
 
 import (
 	"database/sql"
-	"fmt"
 	"path/filepath"
 	"strconv"
 	"testing"
@@ -24,19 +23,57 @@ func Test_insertWithPlaceholder(t *testing.T) {
 		t.Errorf("connection failed: %v", err)
 	}
 	cleanUp(db)
-	idToInsert := 347
-	query := fmt.Sprintf("INSERT INTO patenti VALUES(%d)", idToInsert)
-	err = insertToDB(db, query)
+	stringedIdToInsert := "347"
+	query := "INSERT INTO patenti (id) VALUES($1)"
+	err = insertToDB(db, query, stringedIdToInsert)
 	if err != nil {
 		t.Errorf("insert failed : %v", err)
 	}
 	var id int
-	if err = db.QueryRow(fmt.Sprintf("SELECT id FROM patenti WHERE id=%d", idToInsert)).Scan(&id); err != nil {
+	if err = db.QueryRow("SELECT id FROM patenti WHERE id=$1", 347).Scan(&id); err != nil {
 		t.Errorf("select query failed %v", err)
 	}
-	if id != idToInsert {
+	if strconv.Itoa(id) != stringedIdToInsert {
 		t.Errorf("id mismatched %d", id)
 	}
+}
+
+func Test_InsertCitySingleQuote(t *testing.T) {
+	testrecord := RecordPatente{
+		id:                  "10",
+		anno_nascita:        "1990",
+		regione_residenza:   "test",
+		provincia_residenza: "co",
+		comune_residenza:    "cantu'",
+		sesso:               "t",
+		categoria_patente:   "a",
+		data_rilascio:       "1990",
+		abilitato_a:         "s",
+		data_abilitazione_a: "1990",
+		data_scadenza:       "1990",
+		punti_patente:       "30",
+	}
+	db, err := openConnection()
+	if err != nil {
+		t.Errorf("connection failed: %v", err)
+	}
+	if err := InsertRecordPatenteToDB(db, testrecord); err != nil {
+		t.Errorf("insert to DB failed: %v", err)
+		t.FailNow()
+	}
+	var rec RecordPatente
+	err = db.QueryRow("SELECT * FROM patenti WHERE id=10").Scan(&rec.id,
+		&rec.anno_nascita, &rec.regione_residenza, &rec.provincia_residenza,
+		&rec.comune_residenza, &rec.sesso, &rec.categoria_patente,
+		&rec.data_rilascio, &rec.abilitato_a, &rec.data_abilitazione_a,
+		&rec.data_scadenza, &rec.punti_patente)
+	if err != nil {
+		t.Errorf("convertion from db failed: %v", err)
+	}
+	if rec.comune_residenza != testrecord.comune_residenza {
+		t.Error("comune residenza not ok")
+	}
+	cleanUp(db)
 }
 
 func Test_ReadCsvFile(t *testing.T) {
