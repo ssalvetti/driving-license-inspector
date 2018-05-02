@@ -72,3 +72,26 @@ func ReadFromCsv(inputFile string) ([]RecordPatente, error) {
 	}
 	return listaPatenti, nil
 }
+
+func BatchInsertRecordsToDB(db *sql.DB, records []RecordPatente) error {
+	query := "INSERT INTO patenti VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)"
+	tx, err := db.Begin()
+	if err != nil {
+		return err
+	}
+	stmt, err := tx.Prepare(query)
+	if err != nil {
+		return err
+	}
+	for _, rec := range records {
+		if _, err := stmt.Exec(rec.id,
+			rec.anno_nascita, rec.regione_residenza, rec.provincia_residenza,
+			rec.comune_residenza, rec.sesso, rec.categoria_patente,
+			rec.data_rilascio, rec.abilitato_a, rec.data_abilitazione_a,
+			rec.data_scadenza, rec.punti_patente); err != nil {
+			continue
+		}
+
+	}
+	return tx.Commit()
+}

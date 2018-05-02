@@ -75,7 +75,6 @@ func Test_InsertCitySingleQuote(t *testing.T) {
 	}
 	cleanUp(db)
 }
-
 func Test_ReadCsvFile(t *testing.T) {
 	testFilePath := filepath.Join("..", "..", "test", "fixtures", "lombardia-subset.csv")
 	records, err := ReadFromCsv(testFilePath)
@@ -127,6 +126,80 @@ func BenchmarkInsertRecordPatente(b *testing.B) {
 		if err := InsertRecordPatenteToDB(db, rec); err != nil {
 			b.Errorf("failed to insert %v", err)
 		}
+	}
+	cleanUp(db)
+}
+
+func BenchmarkInsertMultipleRecords(b *testing.B) {
+
+	db, err := openConnection()
+	if err != nil {
+		b.Errorf("connection failed: %v", err)
+	}
+	b.N = 6000
+	records := make([]RecordPatente, 0)
+	for i := 0; i < b.N; i++ {
+		stringedID := strconv.Itoa(i + 1000)
+		rec := RecordPatente{
+			id:                  stringedID,
+			anno_nascita:        "1998",
+			regione_residenza:   "as",
+			provincia_residenza: "sd",
+			comune_residenza:    "df",
+			sesso:               "t",
+			categoria_patente:   "tes",
+			data_rilascio:       "testme",
+			abilitato_a:         "t",
+			data_abilitazione_a: "testme",
+			data_scadenza:       "testme",
+			punti_patente:       "23",
+		}
+		// assign record to records list
+		records = append(records, rec)
+		// each 1000 i, we run the multiple insert and reset records
+		if i%1000 == 0 {
+			if err := BatchInsertRecordsToDB(db, records); err != nil {
+				b.Errorf("failed to insert %v", err)
+			}
+			records = make([]RecordPatente, 0)
+		}
+	}
+	cleanUp(db)
+}
+
+func Test_InsertMultipleRecordsInOneQuery(t *testing.T) {
+	records := make([]RecordPatente, 0)
+	for i := 0; i < 10; i++ {
+		id := i + 1000
+		testrecord := RecordPatente{
+			id:                  strconv.Itoa(id),
+			anno_nascita:        "1990",
+			regione_residenza:   "test",
+			provincia_residenza: "co",
+			comune_residenza:    "cantu'",
+			sesso:               "t",
+			categoria_patente:   "a",
+			data_rilascio:       "1990",
+			abilitato_a:         "s",
+			data_abilitazione_a: "1990",
+			data_scadenza:       "1990",
+			punti_patente:       "30",
+		}
+		records = append(records, testrecord)
+	}
+	db, err := openConnection()
+	if err != nil {
+		t.Errorf("connection failed: %v", err)
+	}
+	if err := BatchInsertRecordsToDB(db, records); err != nil {
+		t.Errorf("batch failed to insert %v", err)
+	}
+	var count int
+	if err = db.QueryRow("SELECT COUNT(*) FROM patenti").Scan(&count); err != nil {
+		t.Errorf("select query failed %v", err)
+	}
+	if count != 10 {
+		t.Errorf("expected 10 lines, having %d", count)
 	}
 	cleanUp(db)
 }

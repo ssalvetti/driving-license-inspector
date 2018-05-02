@@ -24,14 +24,21 @@ func main() {
 	if err != nil {
 		log.Fatalf("could not read csv file: %v", err)
 	}
+	var batchLength = 1000
 	var inserted int
-	for _, record := range recordPatenti {
-		err := patenti.InsertRecordPatenteToDB(db, record)
-		if err != nil {
-			log.Printf("insert failed for record patente for record %v\nerror: %v", record, err)
-			continue
+	batch := make([]patenti.RecordPatente, 0)
+	for i, record := range recordPatenti {
+		batch = append(batch, record)
+		if i%batchLength == 0 {
+			err := patenti.BatchInsertRecordsToDB(db, batch)
+			if err != nil {
+				log.Printf("insert failed for batch: %v", err)
+				continue
+			}
+			inserted += batchLength
+//TO DO :failed transaction to be investigated.. stay tuned
 		}
-		inserted++
+
 	}
 
 	log.Printf("records read: %d", len(recordPatenti))
