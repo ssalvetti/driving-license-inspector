@@ -106,6 +106,7 @@ func BenchmarkInsertRecordPatente(b *testing.B) {
 	if err != nil {
 		b.Errorf("connection failed: %v", err)
 	}
+	defer cleanUp(db)
 	b.N = 6000
 	for i := 0; i < b.N; i++ {
 		stringedID := strconv.Itoa(i + 1000)
@@ -124,10 +125,9 @@ func BenchmarkInsertRecordPatente(b *testing.B) {
 			punti_patente:       "23",
 		}
 		if err := InsertRecordPatenteToDB(db, rec); err != nil {
-			b.Errorf("failed to insert %v", err)
+			b.Errorf("failed to insert: %v", err)
 		}
 	}
-	cleanUp(db)
 }
 
 func BenchmarkInsertMultipleRecords(b *testing.B) {
@@ -136,6 +136,7 @@ func BenchmarkInsertMultipleRecords(b *testing.B) {
 	if err != nil {
 		b.Errorf("connection failed: %v", err)
 	}
+	defer cleanUp(db)
 	b.N = 6000
 	records := make([]RecordPatente, 0)
 	for i := 0; i < b.N; i++ {
@@ -164,7 +165,6 @@ func BenchmarkInsertMultipleRecords(b *testing.B) {
 			records = make([]RecordPatente, 0)
 		}
 	}
-	cleanUp(db)
 }
 
 func Test_InsertMultipleRecordsInOneQuery(t *testing.T) {
@@ -201,5 +201,5 @@ func Test_InsertMultipleRecordsInOneQuery(t *testing.T) {
 	if count != 10 {
 		t.Errorf("expected 10 lines, having %d", count)
 	}
-	cleanUp(db)
+	// cleanUp(db)
 }

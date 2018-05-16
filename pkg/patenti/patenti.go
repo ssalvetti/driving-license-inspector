@@ -89,9 +89,8 @@ func BatchInsertRecordsToDB(db *sql.DB, records []RecordPatente) error {
 			rec.comune_residenza, rec.sesso, rec.categoria_patente,
 			rec.data_rilascio, rec.abilitato_a, rec.data_abilitazione_a,
 			rec.data_scadenza, rec.punti_patente); err != nil {
-			continue
+			return err
 		}
-
 	}
 	return tx.Commit()
 }

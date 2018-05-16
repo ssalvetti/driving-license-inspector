@@ -27,18 +27,18 @@ func main() {
 	var batchLength = 1000
 	var inserted int
 	batch := make([]patenti.RecordPatente, 0)
+	var nextToInsert int
 	for i, record := range recordPatenti {
 		batch = append(batch, record)
 		if i%batchLength == 0 {
-			err := patenti.BatchInsertRecordsToDB(db, batch)
+			err := patenti.BatchInsertRecordsToDB(db, batch[nextToInsert:i])
 			if err != nil {
 				log.Printf("insert failed for batch: %v", err)
 				continue
 			}
+			nextToInsert = i + 1
 			inserted += batchLength
-//TO DO :failed transaction to be investigated.. stay tuned
 		}
-
 	}
 
 	log.Printf("records read: %d", len(recordPatenti))
