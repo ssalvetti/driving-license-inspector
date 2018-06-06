@@ -168,25 +168,7 @@ func BenchmarkInsertMultipleRecords(b *testing.B) {
 }
 
 func Test_InsertMultipleRecordsInOneQuery(t *testing.T) {
-	records := make([]RecordPatente, 0)
-	for i := 0; i < 10; i++ {
-		id := i + 1000
-		testrecord := RecordPatente{
-			id:                  strconv.Itoa(id),
-			anno_nascita:        "1990",
-			regione_residenza:   "test",
-			provincia_residenza: "co",
-			comune_residenza:    "cantu'",
-			sesso:               "t",
-			categoria_patente:   "a",
-			data_rilascio:       "1990",
-			abilitato_a:         "s",
-			data_abilitazione_a: "1990",
-			data_scadenza:       "1990",
-			punti_patente:       "30",
-		}
-		records = append(records, testrecord)
-	}
+	records := CreateTestRecords(10)
 	db, err := openConnection()
 	if err != nil {
 		t.Errorf("connection failed: %v", err)
@@ -203,3 +185,4 @@ func Test_InsertMultipleRecordsInOneQuery(t *testing.T) {
 	}
 	// cleanUp(db)
 }
+
